@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap" rel="stylesheet">
+        <link href="styles.css" rel="stylesheet">
+        <title>Trivia!</title>
+        <script>
+
+            document.addEventListener("DOMContentLoaded", function() { // Waits until the DOM is loaded, without this queryselectors return null!
+                const correctbutton = document.querySelector("#correctbutton");
+                const falsebuttons = document.querySelectorAll("#falsebutton1, #falsebutton2, #falsebutton3");
+                const result = document.querySelector("#buttonsresult");
+                done1 = false;
+
+                function disablebuttons() {
+                    correctbutton.style = "background-color: #d9edff;";
+                    for (let fbutton of falsebuttons)
+                    {
+                        fbutton.style = "background-color: #d9edff;";
+                    }
+                }
+
+                function correct() {
+                    if (!done1) {
+                        disablebuttons();
+                        correctbutton.style = "background-color: #7eff73;";
+                        result.innerHTML = "Correct!";
+                    }
+                    done1 = true;
+                }
+
+                function incorrect(e) {
+                    if (!done1) {
+                        disablebuttons();
+                        e.target.style = "background-color: #fc9292;";
+                        result.innerHTML = "Incorrect";
+                    }
+                    done1 = true;
+                }
+
+
+                correctbutton.addEventListener("click", correct);
+                for (let fbutton of falsebuttons)
+                {
+                    fbutton.addEventListener("click", incorrect);
+                }
+
+                if (done1)
+                {}
+
+
+                done2 = false;
+
+                document.querySelector("form").addEventListener("submit", function(e)
+                {
+                    e.preventDefault(); // Prevents form from reloading the page
+
+                    if (!done2)
+                    {
+                        let answer_submit = document.querySelector("#q2field");
+                        let answer_text = answer_submit.value.trim().toUpperCase()
+
+                        if (answer_text == "MOROCCO")
+                        {
+                            document.querySelector("#submitresult").innerHTML = "Correct!";
+                            answer_submit.style = "background-color: #7eff73;";
+                        }
+                        else
+                        {
+                            document.querySelector("#submitresult").innerHTML = "Incorrect";
+                            answer_submit.style = "background-color: #fc9292;";
+                        }
+
+                        document.querySelector("[type=submit]").style = "background-color: #d9edff;";
+                        done2 = true;
+                    }
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <div class="header">
+            <h1>Trivia!</h1>
+        </div>
+
+        <div class="container">
+            <div class="section">
+                <h2>Part 1: Multiple Choice </h2>
+                <hr>
+                <!-- TODO: Add multiple choice question here -->
+                <h3>Which football team was the first to win the Europa League?</h3>
+                <div>
+                    <button id="falsebutton1" data-test="falsebutton">Real Madrid</button>
+                    <button id="correctbutton" data-test="correctbutton">Tottenham Hotspur</button>
+                    <button id="falsebutton2" data-test="falsebutton">Inter Milan</button>
+                    <button id="falsebutton3" data-test="falsebutton">Liverpool FC</button>
+                </div>
+                <h2 id="buttonsresult"></h2>
+            </div>
+
+            <div class="section">
+                <h2>Part 2: Free Response</h2>
+                <hr>
+                <!-- TODO: Add free response question here -->
+                <h3>What is the first African country to reach the men's football world cup semi-finals?</h3>
+                <form>
+                    <input type="text" id="q2field">
+                    <button type="submit">Check Answer</button>
+                </form>
+                <h2 id="submitresult"></h2>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Buy
+{% endblock %}
+
+{% block main %}
+    <h2 style="padding: 1rem;">
+        Balance: {{ balance | usd }}
+    </h2>
+
+    <div style="padding: 1rem;">
+        <form action="/buy" method="post">
+            <div class="mb-3">
+                <input class="form-control mx-auto w-auto" type="text" autofocus name="symbol" placeholder="Symbol" autocomplete="off">
+            </div>
+            <div class="mb-3">
+                <input class="form-control mx-auto w-auto" type="number" min="1" name="shares" placeholder="Shares" autocomplete="off">
+            </div>
+            <button class="btn btn-primary" type="submit">Buy</button>
+        </form>
+    </div>
+{% endblock %}

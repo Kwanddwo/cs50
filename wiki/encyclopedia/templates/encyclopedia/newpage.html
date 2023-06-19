@@ -1,0 +1,31 @@
+{% extends "encyclopedia/layout.html" %}
+
+{% block title %}New Page{% endblock %}
+
+{% block body %}
+    
+    <h1>New Page</h1>
+    <hr>
+
+    {% if is_title_unavailable %}
+        <h2>Error: An entry with this title already exists</h2>
+        <hr>
+    {% endif %}
+
+    {% if no_title or no_content %}
+        <h2>Error: Required fields not filled, your entry should have a title and contents</h2>
+        <hr>
+    {% endif %}
+
+    {% if saved %}
+        <h2>Error: Required fields not filled, your entry should have a title and contents</h2>
+        <hr>
+    {% endif %}
+
+    <form action="{% url 'newpage' %}" method="POST">
+        {% csrf_token %}
+        <div><input required name="title" placeholder="Title" type="text"></div>
+        <textarea name="content" placeholder="Entry Content"></textarea>
+        <div><button type="submit">Save</button></div>
+    </form>
+{% endblock %}

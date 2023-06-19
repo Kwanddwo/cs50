@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+
+{% block title %}Index{% endblock %}
+
+{% block main %}
+    <!--Make a table that shows all stocks in portfolio-->
+    {% if portfolio %}
+        <div class="container text-center">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th class="text-start">Symbol</th>
+                        <th class="text-start">Name</th>
+                        <th class="text-end">Shares</th>
+                        <th class="text-end">Price</th>
+                        <th class="text-end">TOTAL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for stock in portfolio %}
+                    {% if stock["shares"] > 0 %}
+                        <tr>
+                            <td class="text-start">{{ stock["symbol"]}}</td>
+                            <td class="text-start">{{ stock["name"]}}</td>
+                            <td class="text-end">{{ stock["shares"]}}</td>
+                            <td class="text-end">{{ stock["price"] | usd }}</td>
+                            <td class="text-end">{{ stock["holding"] | usd }}</td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+                </tbody>
+                <tfoot class="border-0">
+                    <tr>
+                        <td class="text-end fw-bold border-0" colspan="4">Cash</td>
+                        <td class="text-end border-0">{{ balance | usd }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-end fw-bold border-0" colspan="4">TOTAL</td>
+                        <td class="text-end border-0">{{ grandtotal | usd }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    {% else %}
+        <h2>Portfolio is empty for now, make a purchase!</h2>
+    {% endif %}
+
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "encyclopedia/layout.html" %}
+
+{% block title %}Edit Page : {{cur_title}}{% endblock %}
+
+{% block body %}
+    
+    <h1>Edit Page</h1>
+    <hr>
+
+    {% if is_title_unavailable %}
+        <h2>Error: An entry with this title already exists</h2>
+        <hr>
+    {% endif %}
+
+    {% if no_title or no_content %}
+        <h2>Error: Required fields not filled, your entry should have a title and contents</h2>
+        <hr>
+    {% endif %}
+
+    {% if saved %}
+        <h2>Error: Required fields not filled, your entry should have a title and contents</h2>
+        <hr>
+    {% endif %}
+
+    <form action="{% url 'editpage' cur_title %}" method="POST">
+        {% csrf_token %}
+        <div><input required name="title" placeholder="Title" type="text" value="{{cur_title}}"></div>
+        <textarea name="content" placeholder="Entry Content" value="{{cur_content}}">{{cur_content}}</textarea>
+        <div><button type="submit" name="delete" value="false">Save changes</button></div>
+        <div><button type="submit" name="delete" value="true">Delete entry</button></div>
+    </form>
+{% endblock %}
