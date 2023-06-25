@@ -1,0 +1,26 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}{{ listing.name }}{% endblock %}
+
+{% block body %}
+    <h2>Listing: {{ listing.name }}</h2>
+    {% if listing.imageurl != "" %}
+        <img src="{{ listing.imageurl }}">
+    {% endif %}
+    {{ listing.description }}
+    <h3>{{ listing.price }}</h3>
+    TODO: Bid form!
+    <h3>Details:</h3>
+    <ul>
+        <li>Listed by (TO DO links) : <a href="">{{ seller }}</a></li>
+        <li>Categories :
+            <ul>
+                {% for category in categories %}
+                    <li>{{ category.name }}</li>
+                {% empty %}
+                    <li>No Category Listed</li>
+                {% endfor %}
+            </ul>
+        </li>
+    </ul>
+{% endblock %}
