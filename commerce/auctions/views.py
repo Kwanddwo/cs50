@@ -4,13 +4,15 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User, Listing
+from .models import User, Listing, Bid
 
 
 def index(request):
     listings = Listing.objects.all()
+    bids = Bid.objects.all()
     return render(request, "auctions/index.html", {
-        "listings": listings
+        "listings": listings,
+        "bids": bids
     })
 
 
@@ -18,10 +20,14 @@ def listing(request, listing_index):
     entry = Listing.objects.get(pk=listing_index)
     seller = entry.seller_id.username
     categories = entry.category.all()
+    # Check if this actually works
+    if entry.have_bid:
+        current_bid = max(Bid.objects.filter(auction=listing_index))
     return render(request, "auctions/listing.html", {
         "listing": entry,
         "seller": seller,
-        "categories": categories
+        "categories": categories,
+        "current_bid": current_bid
     })
 
 

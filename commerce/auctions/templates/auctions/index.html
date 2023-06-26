@@ -18,9 +18,10 @@
                             <div class="card-body">
                                 <h5 class="card-title">{{ listing.name }}</h5>
                                 <p class="card-text">{{ listing.description }}</p>
-                                <p class="card-text">Current bid: ${{ listing.price }}</p>
+                                <p class="card-text">Current bid: ${% if listing.have_bid %}{{ max([x.price for x in bids where bids.auction == listing])}}
+                                                                    {% else %}{{ listing.start_price }}{% endif %}
+                                </p>
                                 <a href="{% url 'listing' listing.pk %}" class="btn btn-primary">See Listing</a>
-                                <a href="#" class="btn btn-primary">Place Bid</a>
                             </div>
                         </div>
                     </div>

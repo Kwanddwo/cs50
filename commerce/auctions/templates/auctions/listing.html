@@ -5,10 +5,15 @@
 {% block body %}
     <h2>Listing: {{ listing.name }}</h2>
     {% if listing.imageurl != "" %}
-        <img src="{{ listing.imageurl }}">
+    <div class="container text-center m-5"><img class="img-fluid" src="{{ listing.imageurl }}"></div>
+        
     {% endif %}
     {{ listing.description }}
-    <h3>{{ listing.price }}</h3>
+    {% if listing.have_bid %}
+        <h3>${{ current_bid }}</h3>
+    {% else %}
+        <h3>${{ listing.start_price }}</h3>
+    {% endif %}
     TODO: Bid form!
     <h3>Details:</h3>
     <ul>
