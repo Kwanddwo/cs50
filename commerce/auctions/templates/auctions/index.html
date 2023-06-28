@@ -4,6 +4,7 @@
     <h2>Active Listings</h2>
 
     <div class="container-fluid">
+    {# make this only show open listings #}
     {% for listing in listings %}
         <div class="row">
             <div class="col-12">
@@ -18,9 +19,7 @@
                             <div class="card-body">
                                 <h5 class="card-title">{{ listing.name }}</h5>
                                 <p class="card-text">{{ listing.description }}</p>
-                                <p class="card-text">Current bid: ${% if listing.have_bid %}{{ max([x.price for x in bids where bids.auction == listing])}}
-                                                                    {% else %}{{ listing.start_price }}{% endif %}
-                                </p>
+                                <p class="card-text">Current bid: ${{ listing.current_price }}</p>
                                 <a href="{% url 'listing' listing.pk %}" class="btn btn-primary">See Listing</a>
                             </div>
                         </div>
