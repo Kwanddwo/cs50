@@ -22,6 +22,7 @@ class Listing(models.Model):
     current_bidder = models.ForeignKey(User, on_delete=models.PROTECT, related_name="highest_bids", blank=True)
     is_closed = models.BooleanField(default=False)
     winner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    watched_by = models.ManyToManyField(User, null=True, blank=True, related_name="watchlist")
 
     def __str__(self):
         return f"{self.name} for ${self.current_price} by {self.seller}"
@@ -35,4 +36,10 @@ class Bid(models.Model):
         return f"{self.bidder} bid {self.price} on {self.auction}"
 
 class Comment(models.Model):
-    pass
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="comments")
+    commenter = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")
+    text = models.TextField()
+    date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.commenter} commented {self.text} on {self.date}"

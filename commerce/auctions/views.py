@@ -5,7 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User, Listing, Bid
+from .models import User, Listing, Bid, Comment
 from .forms import ListingForm
 
 
@@ -27,7 +27,6 @@ def user_view(request, username):
 def listing(request, listing_index):
     entry = Listing.objects.get(pk=listing_index)
     seller = entry.seller.username
-    categories = entry.category.all()
 
     if entry.have_bid:
         bids = Bid.objects.filter(auction=listing_index)
@@ -43,7 +42,6 @@ def listing(request, listing_index):
     return render(request, "auctions/listing.html", {
         "listing": entry,
         "seller": seller,
-        "categories": categories,
         "bid_count": bid_count
     })
 
@@ -54,6 +52,9 @@ def create_listing(request):
         form = ListingForm(request.POST)
         if form.is_valid():
 
+            if form.cleaned_data["current_price"] < 0:
+                return HttpResponse("Error: Price cannot be negative.")
+            
             listing = Listing(
                 name=form.cleaned_data["name"],
                 seller=request.user,
@@ -100,6 +101,31 @@ def bid(request, listing_index):
         bid.save()
 
     return HttpResponseRedirect(reverse("listing", args=[listing_index]))
+
+
+@login_required
+def close(request, listing_index):
+    if request.method == "POST":
+        listing = Listing.objects.get(pk=listing_index)
+        if listing.seller != request.user:
+            return HttpResponse("Error: You cannot close an auction that isn't yours")
+        
+        listing.winner = listing.current_bidder
+        listing.is_closed = True
+        listing.save()
+    return HttpResponseRedirect(reverse("listing", args=[listing_index]))
+
+@login_required
+def watchlist(request):
+    if request.method == "POST":
+        listing = Listing.objects.get(pk=request.POST["listing_id"])
+
+        if request.POST["choice"] == "add":
+            request.user.watchlist.add(listing)
+        else:
+            request.user.watchlist.remove(listing)
+
+    return render(request, "auctions/watchlist.html")
 
 def login_view(request):
     if request.method == "POST":
