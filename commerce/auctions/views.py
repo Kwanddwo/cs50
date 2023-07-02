@@ -115,6 +115,7 @@ def close(request, listing_index):
         listing.save()
     return HttpResponseRedirect(reverse("listing", args=[listing_index]))
 
+
 @login_required
 def watchlist(request):
     if request.method == "POST":
@@ -126,6 +127,25 @@ def watchlist(request):
             request.user.watchlist.remove(listing)
 
     return render(request, "auctions/watchlist.html")
+
+
+@login_required
+def comment(request, listing_id):
+    if request.method == "POST":
+        listing = Listing.objects.get(pk=listing_id)
+
+        if request.POST["delete"]:
+           comment = Comment.objects.get(pk=request.POST["delete"])
+           comment.delete()
+           return HttpResponseRedirect(reverse("listing", args=[listing_id]))
+        
+        if not request.POST["text"]:
+            return HttpResponse("Error: Comment is empty")
+        comment = Comment(listing=listing, text=request.POST["text"], commenter=request.user)
+        comment.save()
+
+    return HttpResponseRedirect(reverse("listing", args=[listing_id]))
+
 
 def login_view(request):
     if request.method == "POST":

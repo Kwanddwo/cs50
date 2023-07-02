@@ -54,8 +54,37 @@
         </li>
     </ul>
     <hr>
+    <h2>Make a comment</h2>
+    {% if user.is_authenticated %}
+        <form action="{% url 'comment' listing.id %}" method="post">
+            {% csrf_token %}
+            <textarea required class="form-control mb-3" name="text" placeholder="Comment here"></textarea>
+            <input type="hidden" name="commenter" value="{{ user.id }}">
+            <button class="btn btn-primary" type="submit">Comment</button>
+            <input type="hidden" name="delete">
+        </form>
+    {% else %}
+        <h6><a href="{% url 'login_view' %}">Login</a>to comment</h6>
+    {% endif %}
+    <hr>
     <h2>Comments</h2>
     {% for comment in listing.comments.all %}
-        TODO: Make comment cards!!
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <a href="{% url 'user_view' comment.commenter %}">{{ comment.commenter }}</a>
+                </h5>
+                <p class="card-text">{{ comment.text }}</p>
+                <p class="card-text text-muted">{{ comment.date }}</p>
+                {% if user == comment.commenter %}
+                    <form action="{% url 'comment' listing.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger" name="delete" value="{{ comment.id }}">Delete Comment</button>
+                    </form>
+                {% endif %}
+            </div> 
+        </div>
+    {% empty %}
+        <h3>No comments on this listing</h3>
     {% endfor %}
 {% endblock %}
