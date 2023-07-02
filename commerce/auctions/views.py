@@ -5,7 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User, Listing, Bid, Comment
+from .models import User, Listing, Bid, Comment, AuctionCategory
 from .forms import ListingForm
 
 
@@ -14,6 +14,25 @@ def index(request):
 
     return render(request, "auctions/index.html", {
         "listings": listings
+    })
+
+def categories(request):
+    categories = AuctionCategory.objects.all()
+
+    if request.method == "POST":
+        category = AuctionCategory.objects.get(name=request.POST["category"])
+        listings = Listing.objects.all()
+
+        if category not in categories:
+            return HttpResponse("Error: This category does not exist")
+        
+        return render(request, "auctions/category_filter.html", {
+            "category": category,
+            "listings": listings
+        })
+
+    return render(request, "auctions/categories.html", {
+        "categories": categories
     })
 
 

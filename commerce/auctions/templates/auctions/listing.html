@@ -45,7 +45,7 @@
         <li>Listed by: <a href="{% url 'user_view' seller %}">{{ seller }}</a></li>
         <li>Categories :
             <ul>
-                {% for category in listing.categories.all %}
+                {% for category in listing.category.all %}
                     <li>{{ category.name }}</li>
                 {% empty %}
                     <li>No Category Listed</li>
@@ -64,7 +64,7 @@
             <input type="hidden" name="delete">
         </form>
     {% else %}
-        <h6><a href="{% url 'login_view' %}">Login</a>to comment</h6>
+        <h6><a href="{% url 'login' %}">Login</a> to comment</h6>
     {% endif %}
     <hr>
     <h2>Comments</h2>
