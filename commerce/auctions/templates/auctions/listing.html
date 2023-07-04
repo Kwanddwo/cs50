@@ -18,12 +18,22 @@
                     <input type="number" required placeholder="Bid Amount" name="price" min="{{ listing.current_price }}">
                     <button type="submit" class="btn btn-primary">Bid</button>
                 </form>
-                <form action="{% url 'watchlist' %}" method="post">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-primary">Add to Watchlist</button>
-                    <input type="hidden" name="listing_id" value="{{ listing.pk }}">
-                    <input type="hidden" name="choice" value="add">
-                </form>
+                {% if listing in user.watchlist.all %}
+                    <form action="{% url 'watchlist' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Remove from Watchlist</button>
+                        <input type="hidden" name="listing_id" value="{{ listing.pk }}">
+                        <input type="hidden" name="choice" value="remove">
+                        <input type="hidden" name="redirect_to_listing" value="yes">
+                    </form>
+                {% else %}
+                    <form action="{% url 'watchlist' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">Add to Watchlist</button>
+                        <input type="hidden" name="listing_id" value="{{ listing.pk }}">
+                        <input type="hidden" name="choice" value="add">
+                    </form>
+                {% endif %}
             {% else %}
                 <form action="{% url 'close' listing.id %}" method="post">
                     {% csrf_token %}

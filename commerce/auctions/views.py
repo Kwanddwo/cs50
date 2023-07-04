@@ -145,6 +145,9 @@ def watchlist(request):
         else:
             request.user.watchlist.remove(listing)
 
+        if "redirect_to_listing" in request.POST:
+            return HttpResponseRedirect(reverse("listing", args=[request.POST["listing_id"]]))
+
     return render(request, "auctions/watchlist.html")
 
 
