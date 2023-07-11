@@ -1,0 +1,14 @@
+{% extends "network/layout.html" %}
+
+{% block script %}
+    <script src="{ static 'mail/index.js' }"></script>
+{% endblock %}
+
+{% block body %}
+    {% if user.is_authenticated %}
+        <form id="post-form">
+            <textarea required class="form-control" id="post-body" placeholder="New Post"></textarea>
+            <button class="btn btn-primary" type="submit">Post</button>
+        </form>
+    {% endif %}
+{% endblock %}
