@@ -1,14 +1,23 @@
 {% extends "network/layout.html" %}
+{% load static %}
 
 {% block script %}
-    <script src="{ static 'mail/index.js' }"></script>
+    <script src="{% static 'network/index.js' %}"></script>
 {% endblock %}
 
 {% block body %}
     {% if user.is_authenticated %}
-        <form id="post-form">
-            <textarea required class="form-control" id="post-body" placeholder="New Post"></textarea>
-            <button class="btn btn-primary" type="submit">Post</button>
-        </form>
+        <div class="container">
+            <h5 id="form-message" class="row"></h5>
+            <div>
+                <form id="form-post">
+                    <label for="form-body">New Post</label>
+                    <textarea required class="form-control mb-2" id="form-body" placeholder="New Post"></textarea>
+                    <button class="btn btn-primary" type="submit">Post</button>
+                </form>
+            </div>
+        </div>
     {% endif %}
+    <div class="container" id="post-feed">
+        </div>
 {% endblock %}

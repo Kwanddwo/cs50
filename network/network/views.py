@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
@@ -13,17 +14,42 @@ def index(request):
     return render(request, "network/index.html")
 
 
-# returns json for infinite scrolling, 15 posts per scroll. Implement this later on!!!
-def all_posts(request, start):
-    posts = []
+# This doesn't work at all
+@login_required
+@csrf_exempt
+def like(request, post_id):
+    if request.method != "POST":
+        return JsonResponse({"message": "POST method required"}, status=400)
+    
+    post = Post.objects.get(pk=post_id)
+    is_like = json.loads(request.body)['like']
+    is_already_liked = Like.objects.filter(user=request.user, post=post).exists()
+    
+    if is_like and not is_already_liked:
+        like = Like(user=request.user, post=post)
+        like.save()
+        return JsonResponse(status=201)
+    
+    elif not is_like and is_already_liked:
+        like = Like(user=request.user, post=post)
+        like.delete()
+        return JsonResponse(status=201)
+    
+    return JsonResponse(status=400)
 
-    for i in range(start, start + 15):
+
+# returns json for infinite scrolling, 15 posts per scroll. Implement this later on!!!
+def all_posts(request, page):
+    start = page * 10 - 9
+
+    posts = []
+    for i in range(start, start + 10):
         try:
             posts.append(Post.objects.get(pk=i))
         except Post.DoesNotExist:
             break
 
-    return JsonResponse([post.serialize() for post in posts]) # Might need safe=False
+    return JsonResponse([post.serialize() for post in posts], safe=False)
 
 def comments(request, post_id):
     post = Post.objects.get(pk=post_id)
@@ -31,7 +57,7 @@ def comments(request, post_id):
 
     # Reverse chronological order
     comments = comments.order_by("-timestamp").all()
-    return JsonResponse([comment.serialize() for comment in comments]) # Might also need safe=False
+    return JsonResponse([comment.serialize() for comment in comments], safe=False)
 
 
 @login_required
