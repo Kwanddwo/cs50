@@ -12,7 +12,6 @@ const LIKED_INNERHTML = `
 let page = 1;
 
 function page_feed(page) {
-    console.log("page_feed called");
 
     fetch(`/all_posts/${page}`)
     .then(response => response.json())
@@ -33,7 +32,12 @@ function page_feed(page) {
             const like_button = document.createElement('div');
             like_button.className = "mx-3";
             like_button.id = `like-button-${post.id}`;
-            like_button.innerHTML = NOT_LIKED_INNERHTML;
+            if (post.liked) {
+                like_button.classList.add("liked");
+                like_button.innerHTML = LIKED_INNERHTML;
+            } else {
+                like_button.innerHTML = NOT_LIKED_INNERHTML;
+            }
 
             like_div.appendChild(like_button);
             like_div.innerHTML += `
@@ -56,14 +60,12 @@ document.addEventListener('click', (event) => {
             fetch(`/like/${post_id}`, {
                 method: 'POST',
                 body: JSON.stringify({
-                    like: true,
+                    like: false
                 })
             })
             .then(response => response.json())
             .then(response => {
-                console.log(response);
-                console.log(response.status);
-                if (response.status == 201) {
+                if ("message" in response) {
                     like_div.innerHTML = NOT_LIKED_INNERHTML;
                     like_div.classList.remove("liked");
                     document.querySelector(`#like-count-${post_id}`).innerHTML = parseInt(document.querySelector(`#like-count-${post_id}`).innerHTML) - 1;
@@ -77,14 +79,12 @@ document.addEventListener('click', (event) => {
             fetch(`/like/${post_id}`, {
                 method: 'POST',
                 body: JSON.stringify({
-                    like: false,
+                    like: true
                 })
             })
             .then(response => response.json())
             .then(response => {
-                console.log(response);
-                console.log(response.status);
-                if (response.status == 201) {
+                if ("message" in response) {
                     like_div.innerHTML = LIKED_INNERHTML;
                     like_div.classList.add("liked");
                     document.querySelector(`#like-count-${post_id}`).innerHTML = parseInt(document.querySelector(`#like-count-${post_id}`).innerHTML) + 1;

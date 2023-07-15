@@ -22,20 +22,29 @@ def like(request, post_id):
         return JsonResponse({"message": "POST method required"}, status=400)
     
     post = Post.objects.get(pk=post_id)
-    is_like = json.loads(request.body)['like']
-    is_already_liked = Like.objects.filter(user=request.user, post=post).exists()
+    is_like = json.loads(request.body)["like"]
     
-    if is_like and not is_already_liked:
+    # Like post
+    if is_like:
         like = Like(user=request.user, post=post)
-        like.save()
-        return JsonResponse(status=201)
-    
-    elif not is_like and is_already_liked:
-        like = Like(user=request.user, post=post)
+        try:
+            like.save()
+            return JsonResponse({"message": f"Liked post: {post_id}"}, status=201)
+        except IntegrityError:
+            return JsonResponse({
+                "error": f"Post {post_id} already liked by {request.user.username}"
+                }, status=400)
+        
+    # Unlike post
+    try:
+        like = Like.objects.get(user=request.user, post=post)
         like.delete()
-        return JsonResponse(status=201)
+        return JsonResponse({"message": f"Unliked {post_id} successfully"}, status=201)
+    except Like.DoesNotExist:
+        return JsonResponse({"error": "Unlike failed because like doesn't exist"}, status=400)
+
     
-    return JsonResponse(status=400)
+
 
 
 # returns json for infinite scrolling, 15 posts per scroll. Implement this later on!!!
@@ -49,6 +58,8 @@ def all_posts(request, page):
         except Post.DoesNotExist:
             break
 
+    if request.user.is_authenticated:
+        return JsonResponse([post.serialize(request.user) for post in posts], safe=False)
     return JsonResponse([post.serialize() for post in posts], safe=False)
 
 def comments(request, post_id):
