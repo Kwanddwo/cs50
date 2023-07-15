@@ -11,8 +11,8 @@ const LIKED_INNERHTML = `
 
 let page = 1;
 
+// Rendering a page of the feed
 function page_feed(page) {
-
     fetch(`/all_posts/${page}`)
     .then(response => response.json())
     .then(posts => {
@@ -50,49 +50,58 @@ function page_feed(page) {
     })
 }
 
+// Like clicking
 document.addEventListener('click', (event) => {
-    const svg = event.target.closest('svg');
-    const like_div = svg.parentElement;
-    if ((event.target.nodeName === 'path' || event.target.nodeName === 'svg') && like_div.id.match(/like-button-/)) {
-        const post_id = like_div.id.replace("like-button-", "");
+    try {
+        const svg = event.target.closest('svg');
+        const like_div = svg.parentElement;
+        if ((event.target.nodeName === 'path' || event.target.nodeName === 'svg') && like_div.id.match(/like-button-/)) {
+            const post_id = like_div.id.replace("like-button-", "");
 
-        if (like_div.classList.contains("liked")) {
-            fetch(`/like/${post_id}`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    like: false
+            if (like_div.classList.contains("liked")) {
+                fetch(`/like/${post_id}`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        like: false
+                    })
                 })
-            })
-            .then(response => response.json())
-            .then(response => {
-                if ("message" in response) {
-                    like_div.innerHTML = NOT_LIKED_INNERHTML;
-                    like_div.classList.remove("liked");
-                    document.querySelector(`#like-count-${post_id}`).innerHTML = parseInt(document.querySelector(`#like-count-${post_id}`).innerHTML) - 1;
-                }
-                else {
-                    alert('You have to be logged in to like a post!');
-                }
-            });
+                .then(response => response.json())
+                .then(response => {
+                    if ("message" in response) {
+                        like_div.innerHTML = NOT_LIKED_INNERHTML;
+                        like_div.classList.remove("liked");
+                        document.querySelector(`#like-count-${post_id}`).innerHTML = parseInt(document.querySelector(`#like-count-${post_id}`).innerHTML) - 1;
+                    }
+                })
+                .catch(error => {
+                    alert('You have to be logged in to like a post!')
+                });
+            }
+            else {
+                fetch(`/like/${post_id}`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        like: true
+                    })
+                })
+                .then(response => response.json())
+                .then(response => {
+                    if ("message" in response) {
+                        like_div.innerHTML = LIKED_INNERHTML;
+                        like_div.classList.add("liked");
+                        document.querySelector(`#like-count-${post_id}`).innerHTML = parseInt(document.querySelector(`#like-count-${post_id}`).innerHTML) + 1;
+                    }
+                })
+                .catch(error => {
+                    alert('You have to be logged in to like a post!')
+                });
+            }
         }
-        else {
-            fetch(`/like/${post_id}`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    like: true
-                })
-            })
-            .then(response => response.json())
-            .then(response => {
-                if ("message" in response) {
-                    like_div.innerHTML = LIKED_INNERHTML;
-                    like_div.classList.add("liked");
-                    document.querySelector(`#like-count-${post_id}`).innerHTML = parseInt(document.querySelector(`#like-count-${post_id}`).innerHTML) + 1;
-                }
-                else {
-                    alert('You have to be logged in to like a post!');
-                }
-            });
+    }
+    catch (error) {
+        if (!error instanceof TypeError)
+        {
+            throw (error)
         }
     }
 });
@@ -111,17 +120,46 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .then(response => response.json())
             .then(response => {
-                if (response.status != 201) {
+                if ("message" in response) {
                     document.querySelector('#form-message').innerHTML = response.message;
-                    // TODO: Artificially add this post into the feed, add some animation too!
-                }
-                else {
+                    const post = response.post;
+                    const post_card = document.createElement('div');
+                    post_card.className = "container border border-black m-2 p-2 new-post";
+                    post_card.innerHTML = `
+                        <h5>${post.user}</h5>
+                        <p>${post.text}</p>
+                        <small><weak>${post.timestamp}</weak></small>
+                    `;
+
+                    const like_div = document.createElement('div');
+                    like_div.className = "row";
+                    like_div.id = `like-row-${post.id}`;
+                    
+                    const like_button = document.createElement('div');
+                    like_button.className = "mx-3";
+                    like_button.id = `like-button-${post.id}`;
+                    if (post.liked) {
+                        like_button.classList.add("liked");
+                        like_button.innerHTML = LIKED_INNERHTML;
+                    } else {
+                        like_button.innerHTML = NOT_LIKED_INNERHTML;
+                    }
+
+                    like_div.appendChild(like_button);
+                    like_div.innerHTML += `
+                        <weak id="like-count-${post.id}">${post.like_count}</weak>
+                        <a href='#' class=" mr-4 ml-auto">Comment</a>
+                    `;
+                    post_card.appendChild(like_div);
+                    document.querySelector('#post-feed').insertBefore(post_card, document.querySelector('#post-feed').firstChild);
+                    post_card.style.animationPlayState = 'running';
+                } else {
                     document.querySelector('#form-message').innerHTML = response.error;
                 }
-            })
+            });
 
             // Don't reload page on form submit
             return false;
-        } 
+        }
     }
-})
+});

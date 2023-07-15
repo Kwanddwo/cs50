@@ -14,7 +14,6 @@ def index(request):
     return render(request, "network/index.html")
 
 
-# This doesn't work at all
 @login_required
 @csrf_exempt
 def like(request, post_id):
@@ -45,18 +44,10 @@ def like(request, post_id):
 
     
 
-
-
 # returns json for infinite scrolling, 15 posts per scroll. Implement this later on!!!
 def all_posts(request, page):
-    start = page * 10 - 9
-
-    posts = []
-    for i in range(start, start + 10):
-        try:
-            posts.append(Post.objects.get(pk=i))
-        except Post.DoesNotExist:
-            break
+    start = page * 10 - 10
+    posts = Post.objects.order_by('-timestamp').all()[:10 + start]
 
     if request.user.is_authenticated:
         return JsonResponse([post.serialize(request.user) for post in posts], safe=False)
@@ -72,18 +63,23 @@ def comments(request, post_id):
 
 
 @login_required
+@csrf_exempt
 def new_post(request):
     if request.method != "POST":
         return JsonResponse({"error": "POST request required."}, status=400)
     
     data = json.loads(request.body)
-    if not data.text:
+    text = data['text'].strip()
+    if not text or text == '':
         return JsonResponse({"error": "Post cannot be empty."}, status=400)
 
-    post = Post(user=request.user, text=data.text)
+    post = Post(user=request.user, text=text)
     post.save()
     
-    return JsonResponse({"message": "Post created successfully."}, status=201)
+    return JsonResponse({
+        "message": "Post created successfully.",
+        "post": post.serialize()
+        }, status=201)
 
 
 def login_view(request):
