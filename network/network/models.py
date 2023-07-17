@@ -3,8 +3,11 @@ from django.db import models
 
 
 class User(AbstractUser):
-    pass
+    bio = models.TextField(max_length=200)
 
+class Follow(models.Model):
+    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name="following")
+    followed = models.ForeignKey(User, on_delete=models.CASCADE, related_name="followers")
 
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")

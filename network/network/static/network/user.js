@@ -12,8 +12,8 @@ const LIKED_INNERHTML = `
 let page = 1;
 
 // Rendering a page of the feed
-function page_feed(page) {
-    fetch(`/all_posts/${page}`)
+function user_feed(user_v, page) {
+    fetch(`/user_posts/${user_v}/${page}`)
     .then(response => response.json())
     .then(posts => {
         for (const post of posts) {
@@ -106,62 +106,12 @@ document.addEventListener('click', (event) => {
     }
 });
 
+function follow_click_handler(user_v) {
+    fetch(`follow/user_v`)
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    page_feed(page);
-    // Implement pagination here
-    const post_form = document.querySelector('#form-post');
-    
-    if (post_form) {
-        post_form.onsubmit = () => {
-            fetch('/new_post', {
-                method: 'POST',
-                body: JSON.stringify({
-                    text: document.querySelector('#form-body').value
-                })
-            })
-            .then(response => response.json())
-            .then(response => {
-                if ("message" in response) {
-                    console.log(response.message);
-                    document.querySelector('#form-body').value = '';
-                    const post = response.post;
-                    const post_card = document.createElement('div');
-                    post_card.className = "container border border-black m-2 p-2 new-post";
-                    post_card.innerHTML = `
-                        <h5><a href='/user/${post.user}'>${post.user}</a></h5>
-                        <p>${post.text}</p>
-                        <small><weak>${post.timestamp}</weak></small>
-                    `;
+    const user_v = document.querySelector('#user-v').value;
+    document.querySelector('#follow-button').onclick = () => {follow_click_handler(user_v)}
+})
 
-                    const like_div = document.createElement('div');
-                    like_div.className = "row";
-                    like_div.id = `like-row-${post.id}`;
-                    
-                    const like_button = document.createElement('div');
-                    like_button.className = "mx-3";
-                    like_button.id = `like-button-${post.id}`;
-                    if (post.liked) {
-                        like_button.classList.add("liked");
-                        like_button.innerHTML = LIKED_INNERHTML;
-                    } else {
-                        like_button.innerHTML = NOT_LIKED_INNERHTML;
-                    }
-
-                    like_div.appendChild(like_button);
-                    like_div.innerHTML += `
-                        <weak id="like-count-${post.id}">${post.like_count}</weak>
-                        <a href='#' class=" mr-4 ml-auto">Comment</a>
-                    `;
-                    post_card.appendChild(like_div);
-                    document.querySelector('#post-feed').insertBefore(post_card, document.querySelector('#post-feed').firstChild);
-                    post_card.style.animationPlayState = 'running';
-                } else {
-                    document.querySelector('#form-message').innerHTML = response.error;
-                }
-            });
-
-            // Don't reload page on form submit
-            return false;
-        }
-    }
-});

@@ -13,7 +13,18 @@ import json
 def index(request):
     return render(request, "network/index.html")
 
+# Implement getCSRFtoken() in javascript per chatgpt suggestion!
+@login_required
+def follow(request, username):
+    pass
 
+
+@login_required
+def unfollow(request, username):
+    pass
+
+
+# Implement getCSRFtoken() in javascript per chatgpt suggestion! also remove csrf_exempt decorator, this is insecure
 @login_required
 @csrf_exempt
 def like(request, post_id):
@@ -43,8 +54,32 @@ def like(request, post_id):
         return JsonResponse({"error": "Unlike failed because like doesn't exist"}, status=400)
 
     
+def user(request, username):
+    try:
+        user_v = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return HttpResponse(f"Error, an account with the username {username} does not exist")
+    
+    follower_count = user_v.followers.count()
+    followed_count = user_v.following.count()
 
-# returns json for infinite scrolling, 15 posts per scroll. Implement this later on!!!
+    
+    return render(request, "network/user.html", {
+        'user_v': user_v,
+        'follower_count': follower_count,
+        'followed_count': followed_count
+    })
+
+def user_posts(request, username, page):
+    user = User.objects.get(username=username)
+    start = page * 10 - 10
+    posts = Post.objects.order_by('-timestamp').filter(user=user)[:10 + start]
+
+    if request.user.is_authenticated:
+        return JsonResponse([post.serialize(request.user) for post in posts], safe=False)
+    return JsonResponse([post.serialize() for post in posts], safe=False)
+
+# returns json for infinite scrolling
 def all_posts(request, page):
     start = page * 10 - 10
     posts = Post.objects.order_by('-timestamp').all()[:10 + start]

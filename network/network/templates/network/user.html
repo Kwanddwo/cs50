@@ -1,0 +1,39 @@
+{% extends "network/layout.html" %}
+{% load static %}
+
+{% block title %}User {{ user.username }}{% endblock %}
+
+{% block script %}<script src="{% static 'network/user.js' %}"></script>{% endblock %}
+
+<!-- Add feed -->
+<!-- Add fluid follow button -->
+{% block body %}
+    <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            {% if user == user_v %}
+            <h5 class="card-title">{{ user_v.username }} <button class="btn btn-primary" disabled id="follow-button">You can't follow yourself</button></h5>
+            {% else %}
+                <h5 class="card-title">{{ user_v.username }} <button class="btn btn-primary" id="follow-button">Follow</button></h5>
+                <hidden id="user-v" value="{{ user_v.username }}"></hidden>
+            {% endif %}
+            
+            <p>class="card-text">{{ user_v.bio }}</p>
+            <small class="card-text">Followers: {{ follower_count }}</small>
+            <small class="card-text">Following: {{ followed_count }}</small>
+          </div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">Date Joined: {{ user_v.date_joined }}</li>
+            <li class="list-group-item">Email: {{ user_v.email }}</li>
+            <li class="list-group-item">First Name: {{ user_v.first_name }}</li>
+            <li class="list-group-item">Last Name: {{ user_v.last_name }}</li>
+          </ul>
+        </div>
+      </div>
+      <div class="container" id="post-feed">
+        </div>
+    </div>
+  </div>
+{% endblock %}
