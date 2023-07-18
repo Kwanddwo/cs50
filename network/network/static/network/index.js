@@ -11,11 +11,14 @@ const LIKED_INNERHTML = `
 
 let page = 1;
 
+
+
 // Rendering a page of the feed
 function page_feed(page) {
     fetch(`/all_posts/${page}`)
     .then(response => response.json())
     .then(posts => {
+        document.querySelector('#post-feed').innerHTML = '';
         for (const post of posts) {
             const post_card = document.createElement('div');
             post_card.className = "container border border-black m-2 p-2";
@@ -108,7 +111,24 @@ document.addEventListener('click', (event) => {
 
 document.addEventListener('DOMContentLoaded', () => {
     page_feed(page);
-    // Implement pagination here
+
+    document.querySelector('#next').onclick = () => {
+        page++;
+        window.scrollTo({
+            top: 100,
+            behavior: "smooth",
+          });
+        page_feed(page);
+    }
+    document.querySelector('#previous').onclick = () => {
+        page--;
+        window.scrollTo({
+            top: 100,
+            behavior: "smooth",
+          });
+        page_feed(page);
+    }
+
     const post_form = document.querySelector('#form-post');
     
     if (post_form) {
@@ -123,6 +143,8 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(response => {
                 if ("message" in response) {
                     console.log(response.message);
+                    page = 1;
+                    page_feed(page);
                     document.querySelector('#form-body').value = '';
                     const post = response.post;
                     const post_card = document.createElement('div');
