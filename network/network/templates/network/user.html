@@ -14,9 +14,11 @@
         <div class="card">
           <div class="card-body">
             {% if user == user_v %}
-            <h5 class="card-title">{{ user_v.username }}  <button class="btn" disabled id="follow-button" data-follow="false">You can't follow yourself</button></h5>
+              <h5 class="card-title">{{ user_v.username }}  <button class="btn" disabled id="follow-button" data-follow="false">You can't follow yourself</button></h5>
+            {% elif already_following %}
+              <h5 class="card-title">{{ user_v.username }}  <button class="btn btn-secondary" id="follow-button" data-follow="true" data-following="true">Unfollow</button></h5>
             {% else %}
-                <h5 class="card-title">{{ user_v.username }}  <button class="btn btn-primary" id="follow-button" data-follow="true">Follow</button></h5>
+              <h5 class="card-title">{{ user_v.username }}  <button class="btn btn-primary" id="follow-button" data-follow="true" data-following="false">Follow</button></h5>
             {% endif %}
             <hidden id="user-v" data-username="{{ user_v.username }}"></hidden>
             
@@ -32,8 +34,7 @@
           </ul>
         </div>
       </div>
-      <hr>
-      <h1 class="display-3 mt-2">User Posts</h5>
+      <h1 class="display-3 my-4 text-center">User Posts</h5>
       <div class="container border border-grey p-5 m-3" id="post-feed">
         </div>
       <div class="d-flex">

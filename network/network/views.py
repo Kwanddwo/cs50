@@ -15,16 +15,23 @@ def index(request):
     return render(request, "network/index.html")
 
 
-def max_page(request):
-    page_max = ceil(Post.objects.count() / 10)
+def max_page(request, username):
+    if username != "index":
+        page_max = ceil(Post.objects.filter(user=User.objects.get(username=username)).count() / 10)
+    else:
+        page_max = ceil(Post.objects.count() / 10)
+
     return JsonResponse({
         'page_max': f"{page_max}"
     }, status=201)
 
 
-# Implement getCSRFtoken() in javascript per chatgpt suggestion!
 @login_required
-def follow(request, username):
+def follow(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST method required"}, status=400)
+    
+    username = request.POST["username"]
     follower = request.user
     followed = User.objects.get(username=username)
     if follower == followed:
@@ -38,9 +45,13 @@ def follow(request, username):
         return JsonResponse({"error": "Can't follow the same user twice"}, status=400)
         
 
-
 @login_required
-def unfollow(request, username):
+def unfollow(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST method required"}, status=400)
+    
+    username = request.POST["username"]
+
     try:
         followed = User.objects.get(username=username)
         follow = Follow.objects.get(follower=request.user, followed=followed)
@@ -50,8 +61,6 @@ def unfollow(request, username):
         return JsonResponse({"error": "You're not following this user to unfollow"}, status=400)
 
 
-
-# Implement getCSRFtoken() in javascript per chatgpt suggestion! also remove csrf_exempt decorator, this is insecure
 @login_required
 def like(request, post_id):
     if request.method != "POST":
@@ -88,7 +97,7 @@ def user(request, username):
     
     follower_count = user_v.followers.count()
     followed_count = user_v.following.count()
-    already_following = Follow.objects.get(follower=request.user, followed=user_v)
+    already_following = Follow.objects.filter(follower=request.user, followed=user_v).exists()
 
     return render(request, "network/user.html", {
         'user_v': user_v,
@@ -128,7 +137,6 @@ def comments(request, post_id):
 
 
 @login_required
-@csrf_exempt
 def new_post(request):
     if request.method != "POST":
         return JsonResponse({"error": "POST request required."}, status=400)

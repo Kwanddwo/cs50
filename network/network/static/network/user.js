@@ -39,7 +39,7 @@ function user_feed(user_v, page) {
             like_div.id = `like-row-${post.id}`;
             
             const like_button = document.createElement('div');
-            like_button.className = "mx-3";
+            like_button.className = "col";
             like_button.id = `like-button-${post.id}`;
             if (post.liked) {
                 like_button.classList.add("liked");
@@ -47,11 +47,12 @@ function user_feed(user_v, page) {
             } else {
                 like_button.innerHTML = NOT_LIKED_INNERHTML;
             }
-
+            like_button.innerHTML += `
+            <weak id="like-count-${post.id}">${post.like_count}</weak>
+            `;
             like_div.appendChild(like_button);
             like_div.innerHTML += `
-                <weak id="like-count-${post.id}">${post.like_count}</weak>
-                <a href='#' class=" mr-4 ml-auto">Comment</a>
+                <div class="col-auto"><a href='#' class="">Comment</a></div>
             `;
             post_card.appendChild(like_div);
             document.querySelector('#post-feed').appendChild(post_card);
@@ -62,7 +63,7 @@ function user_feed(user_v, page) {
                 document.querySelector('#previous').style.display = 'block';
             }
 
-            fetch('/max_page')
+            fetch(`/max_page/${user_v}`)
             .then(response => response.json())
             .then(response => parseInt(response['page_max']))
             .then(page_max => {
@@ -140,22 +141,58 @@ document.addEventListener('click', (event) => {
     }
 });
 
-function follow_click_handler(user_v) {
-    fetch(`follow/${user_v}`)
-    .then(response => response.json())
-    .then(response => {console.log(response)});
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     const user_v = document.querySelector('#user-v').dataset.username;
-    const follow_button = document.querySelector('#follow-button')
-    if (follow_button.data.follow) {
-        follow_button.onclick = () => {follow_click_handler(user_v)};
+    const follow_button = document.querySelector('#follow-button');
+    if (follow_button.dataset.follow === "true") {
+        follow_button.onclick = (e) => {
+            if (follow_button.dataset.following === "true") {
+                fetch("/unfollow", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken, // Include the CSRF token in the header
+                    },
+                    body: JSON.stringify({
+                        username: user_v
+                    })
+                })
+                .then(response => response.json())
+                .then(response => {
+                    if ('message' in response)
+                    {
+                        follow_button.className = "btn btn-primary";
+                        follow_button.data.following = "false";
+                        follow_button.innerHTML = "Follow";
+                    }
+                });
+            } else {
+                fetch("/follow", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken, // Include the CSRF token in the header
+                    },
+                    body: JSON.stringify({
+                        username: user_v
+                    })
+                })
+                .then(response => response.json())
+                .then(response => {
+                    if ('message' in response)
+                    {
+                        follow_button.className = "btn btn-secondary";
+                        follow_button.data.following = "true";
+                        follow_button.innerHTML = "Unfollow";
+                    }
+                });
+            }
+        }
     }
     user_feed(user_v, page);
 
     document.querySelector('#next').onclick = () => {
-        fetch('/max_page')
+        fetch(`/max_page/${user_v}`)
         .then(response => response.json())
         .then(response => parseInt(response['page_max']))
         .then(page_max => {
