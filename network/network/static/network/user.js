@@ -11,11 +11,20 @@ const LIKED_INNERHTML = `
 
 let page = 1;
 
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+  
+const csrftoken = getCookie('csrftoken');
+
 // Rendering a page of the feed
 function user_feed(user_v, page) {
     fetch(`/user_posts/${user_v}/${page}`)
     .then(response => response.json())
     .then(posts => {
+        document.querySelector('#post-feed').innerHTML = '';
         for (const post of posts) {
             const post_card = document.createElement('div');
             post_card.className = "container border border-black m-2 p-2";
@@ -46,6 +55,23 @@ function user_feed(user_v, page) {
             `;
             post_card.appendChild(like_div);
             document.querySelector('#post-feed').appendChild(post_card);
+
+            if (page <= 1) {
+                document.querySelector('#previous').style.display = 'none';
+            } else {
+                document.querySelector('#previous').style.display = 'block';
+            }
+
+            fetch('/max_page')
+            .then(response => response.json())
+            .then(response => parseInt(response['page_max']))
+            .then(page_max => {
+                if (page >= page_max) {
+                    document.querySelector('#next').style.display = 'none';
+                } else {
+                    document.querySelector('#next').style.display = 'block';
+                }
+            });
         }
     })
 }
@@ -61,6 +87,10 @@ document.addEventListener('click', (event) => {
             if (like_div.classList.contains("liked")) {
                 fetch(`/like/${post_id}`, {
                     method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken, // Include the CSRF token in the header
+                      },
                     body: JSON.stringify({
                         like: false
                     })
@@ -80,6 +110,10 @@ document.addEventListener('click', (event) => {
             else {
                 fetch(`/like/${post_id}`, {
                     method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken, // Include the CSRF token in the header
+                      },
                     body: JSON.stringify({
                         like: true
                     })
@@ -107,11 +141,43 @@ document.addEventListener('click', (event) => {
 });
 
 function follow_click_handler(user_v) {
-    fetch(`follow/user_v`)
+    fetch(`follow/${user_v}`)
+    .then(response => response.json())
+    .then(response => {console.log(response)});
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const user_v = document.querySelector('#user-v').value;
-    document.querySelector('#follow-button').onclick = () => {follow_click_handler(user_v)}
+    const user_v = document.querySelector('#user-v').dataset.username;
+    const follow_button = document.querySelector('#follow-button')
+    if (follow_button.data.follow) {
+        follow_button.onclick = () => {follow_click_handler(user_v)};
+    }
+    user_feed(user_v, page);
+
+    document.querySelector('#next').onclick = () => {
+        fetch('/max_page')
+        .then(response => response.json())
+        .then(response => parseInt(response['page_max']))
+        .then(page_max => {
+            if (page < page_max) {
+                page++;
+                window.scrollTo({
+                    top: 150,
+                    behavior: "smooth",
+                });
+                user_feed(user_v, page);
+            }
+        })
+    }
+    document.querySelector('#previous').onclick = () => {
+        if (page > 1) {
+            page--;
+            window.scrollTo({
+                top: 150,
+                behavior: "smooth",
+            });
+            user_feed(user_v, page);
+        }
+    }
 })
 

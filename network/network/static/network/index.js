@@ -11,7 +11,13 @@ const LIKED_INNERHTML = `
 
 let page = 1;
 
-
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+  
+const csrftoken = getCookie('csrftoken');
 
 // Rendering a page of the feed
 function page_feed(page) {
@@ -49,8 +55,25 @@ function page_feed(page) {
             `;
             post_card.appendChild(like_div);
             document.querySelector('#post-feed').appendChild(post_card);
+
+            if (page <= 1) {
+                document.querySelector('#previous').style.display = 'none';
+            } else {
+                document.querySelector('#previous').style.display = 'block';
+            }
+
+            fetch('/max_page')
+            .then(response => response.json())
+            .then(response => parseInt(response['page_max']))
+            .then(page_max => {
+                if (page >= page_max) {
+                    document.querySelector('#next').style.display = 'none';
+                } else {
+                    document.querySelector('#next').style.display = 'block';
+                }
+            });
         }
-    })
+    });
 }
 
 // Like clicking
@@ -64,6 +87,10 @@ document.addEventListener('click', (event) => {
             if (like_div.classList.contains("liked")) {
                 fetch(`/like/${post_id}`, {
                     method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken, // Include the CSRF token in the header
+                      },
                     body: JSON.stringify({
                         like: false
                     })
@@ -83,6 +110,10 @@ document.addEventListener('click', (event) => {
             else {
                 fetch(`/like/${post_id}`, {
                     method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken, // Include the CSRF token in the header
+                      },
                     body: JSON.stringify({
                         like: true
                     })
@@ -113,20 +144,29 @@ document.addEventListener('DOMContentLoaded', () => {
     page_feed(page);
 
     document.querySelector('#next').onclick = () => {
-        page++;
-        window.scrollTo({
-            top: 100,
-            behavior: "smooth",
-          });
-        page_feed(page);
+        fetch('/max_page')
+        .then(response => response.json())
+        .then(response => parseInt(response['page_max']))
+        .then(page_max => {
+            if (page < page_max) {
+                page++;
+                window.scrollTo({
+                    top: 100,
+                    behavior: "smooth",
+                });
+                page_feed(page);
+            }
+        })
     }
     document.querySelector('#previous').onclick = () => {
-        page--;
-        window.scrollTo({
-            top: 100,
-            behavior: "smooth",
-          });
-        page_feed(page);
+        if (page > 1) {
+            page--;
+            window.scrollTo({
+                top: 100,
+                behavior: "smooth",
+            });
+            page_feed(page);
+        }
     }
 
     const post_form = document.querySelector('#form-post');

@@ -6,28 +6,53 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User, Post, Like, Comment
+from .models import User, Post, Like, Comment, Follow
 
 import json
+from math import ceil
 
 def index(request):
     return render(request, "network/index.html")
 
 
+def max_page(request):
+    page_max = ceil(Post.objects.count() / 10)
+    return JsonResponse({
+        'page_max': f"{page_max}"
+    }, status=201)
+
+
 # Implement getCSRFtoken() in javascript per chatgpt suggestion!
 @login_required
 def follow(request, username):
-    pass
+    follower = request.user
+    followed = User.objects.get(username=username)
+    if follower == followed:
+        return JsonResponse({"error": "Can't follow yourself"}, status=400)
+    
+    try:
+        follow = Follow(follower=follower, followed=followed)
+        follow.save()
+        return JsonResponse({"message": "followed user successfully"}, status=201)
+    except IntegrityError:
+        return JsonResponse({"error": "Can't follow the same user twice"}, status=400)
+        
 
 
 @login_required
 def unfollow(request, username):
-    pass
+    try:
+        followed = User.objects.get(username=username)
+        follow = Follow.objects.get(follower=request.user, followed=followed)
+        follow.delete()
+        return JsonResponse({"message": "Unfollowed user successfully"}, status=204)
+    except Follow.DoesNotExist:
+        return JsonResponse({"error": "You're not following this user to unfollow"}, status=400)
+
 
 
 # Implement getCSRFtoken() in javascript per chatgpt suggestion! also remove csrf_exempt decorator, this is insecure
 @login_required
-@csrf_exempt
 def like(request, post_id):
     if request.method != "POST":
         return JsonResponse({"message": "POST method required"}, status=400)
@@ -63,19 +88,20 @@ def user(request, username):
     
     follower_count = user_v.followers.count()
     followed_count = user_v.following.count()
+    already_following = Follow.objects.get(follower=request.user, followed=user_v)
 
-    
     return render(request, "network/user.html", {
         'user_v': user_v,
         'follower_count': follower_count,
-        'followed_count': followed_count
+        'followed_count': followed_count,
+        'already_following': already_following
     })
 
 
 def user_posts(request, username, page):
     user = User.objects.get(username=username)
     start = page * 10 - 10
-    posts = Post.objects.order_by('-timestamp').filter(user=user)[:10 + start]
+    posts = Post.objects.order_by('-timestamp').filter(user=user)[start : 10 + start]
 
     if request.user.is_authenticated:
         return JsonResponse([post.serialize(request.user) for post in posts], safe=False)

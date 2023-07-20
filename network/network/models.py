@@ -8,6 +8,10 @@ class User(AbstractUser):
 class Follow(models.Model):
     follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name="following")
     followed = models.ForeignKey(User, on_delete=models.CASCADE, related_name="followers")
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=('follower', 'followed', ), name="follow_unique")
+        ]
 
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
