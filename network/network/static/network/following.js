@@ -14,14 +14,14 @@ function getCookie(name) {
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(';').shift();
   }
-
+  
 let page = 1;
   
 const csrftoken = getCookie('csrftoken');
 
 // Rendering a page of the feed
-function user_feed(user_v, page) {
-    fetch(`/user_posts/${user_v}/${page}`)
+function following_feed(page) {
+    fetch(`/following_posts/${page}`)
     .then(response => response.json())
     .then(posts => {
         document.querySelector('#post-feed').innerHTML = '';
@@ -52,7 +52,7 @@ function user_feed(user_v, page) {
             `;
             like_div.appendChild(like_button);
             like_div.innerHTML += `
-                <div class="col-auto"><a href='post_view/${post.id}'>Comments</a></div>
+                <div class="col-auto"><a href='post_view/${post.id}' class="">Comments</a></div>
             `;
             post_card.appendChild(like_div);
             document.querySelector('#post-feed').appendChild(post_card);
@@ -63,7 +63,7 @@ function user_feed(user_v, page) {
                 document.querySelector('#previous').style.display = 'block';
             }
 
-            fetch(`/max_page/${user_v}`)
+            fetch('/max_page_following')
             .then(response => response.json())
             .then(response => parseInt(response['page_max']))
             .then(page_max => {
@@ -74,7 +74,7 @@ function user_feed(user_v, page) {
                 }
             });
         }
-    })
+    });
 }
 
 // Like clicking
@@ -142,67 +142,20 @@ document.addEventListener('click', (event) => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    const user_v = document.querySelector('#user-v').dataset.username;
-    const follow_button = document.querySelector('#follow-button');
-    if (follow_button.dataset.follow === "true") {
-        follow_button.onclick = (e) => {
-            if (follow_button.dataset.following === "true") {
-                fetch("/unfollow", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrftoken, // Include the CSRF token in the header
-                    },
-                    body: JSON.stringify({
-                        username: user_v
-                    })
-                })
-                .then(response => response.json())
-                .then(response => {
-                    if ('message' in response)
-                    {
-                        follow_button.className = "btn btn-primary";
-                        follow_button.dataset.following = "false";
-                        follow_button.innerHTML = "Follow";
-                    }
-                });
-            } else {
-                fetch("/follow", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrftoken, // Include the CSRF token in the header
-                    },
-                    body: JSON.stringify({
-                        username: user_v
-                    })
-                })
-                .then(response => response.json())
-                .then(response => {
-                    if ('message' in response)
-                    {
-                        follow_button.className = "btn btn-secondary";
-                        follow_button.dataset.following = "true";
-                        follow_button.innerHTML = "Unfollow";
-                    }
-                });
-            }
-        }
-    }
-    user_feed(user_v, page);
+    following_feed(page);
 
     document.querySelector('#next').onclick = () => {
-        fetch(`/max_page/${user_v}`)
+        fetch('/max_page_following')
         .then(response => response.json())
         .then(response => parseInt(response['page_max']))
         .then(page_max => {
             if (page < page_max) {
                 page++;
                 window.scrollTo({
-                    top: 150,
+                    top: 100,
                     behavior: "smooth",
                 });
-                user_feed(user_v, page);
+                following_feed(page);
             }
         })
     }
@@ -210,11 +163,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (page > 1) {
             page--;
             window.scrollTo({
-                top: 150,
+                top: 100,
                 behavior: "smooth",
             });
-            user_feed(user_v, page);
+            following_feed(page);
         }
     }
-})
-
+});

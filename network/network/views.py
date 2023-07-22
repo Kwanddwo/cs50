@@ -11,19 +11,9 @@ from .models import User, Post, Like, Comment, Follow
 import json
 from math import ceil
 
+
 def index(request):
     return render(request, "network/index.html")
-
-
-def max_page(request, username):
-    if username != "index":
-        page_max = ceil(Post.objects.filter(user=User.objects.get(username=username)).count() / 10)
-    else:
-        page_max = ceil(Post.objects.count() / 10)
-
-    return JsonResponse({
-        'page_max': f"{page_max}"
-    }, status=201)
 
 
 @login_required
@@ -31,7 +21,9 @@ def follow(request):
     if request.method != "POST":
         return JsonResponse({"error": "POST method required"}, status=400)
     
-    username = request.POST["username"]
+    body = json.loads(request.body)
+    username = body["username"]
+
     follower = request.user
     followed = User.objects.get(username=username)
     if follower == followed:
@@ -50,15 +42,43 @@ def unfollow(request):
     if request.method != "POST":
         return JsonResponse({"error": "POST method required"}, status=400)
     
-    username = request.POST["username"]
+    body = json.loads(request.body)
+    username = body["username"]
 
     try:
         followed = User.objects.get(username=username)
         follow = Follow.objects.get(follower=request.user, followed=followed)
         follow.delete()
-        return JsonResponse({"message": "Unfollowed user successfully"}, status=204)
     except Follow.DoesNotExist:
         return JsonResponse({"error": "You're not following this user to unfollow"}, status=400)
+    
+    return JsonResponse({"message": "Unfollowed user successfully"}, status=201)
+    
+
+@login_required
+def following(request):
+    return render(request, "network/following.html")
+
+
+@login_required
+def following_posts(request, page):
+    start = page * 10 - 10
+    user = User.objects.get(username=request.user.username)
+    following = User.objects.filter(followers__follower=user)
+    posts = Post.objects.order_by('-timestamp').filter(user__in=following)[start : 10 + start]
+
+    return JsonResponse([post.serialize(request.user) for post in posts], safe=False)
+
+
+@login_required
+def max_page_following(request):
+    user = User.objects.get(username=request.user.username)
+    following = User.objects.filter(followers__follower=user)
+    page_max = ceil(Post.objects.filter(user__in=following).count() / 10)
+
+    return JsonResponse({
+        'page_max': f"{page_max}"
+    }, status=201)
 
 
 @login_required
@@ -127,13 +147,66 @@ def all_posts(request, page):
     return JsonResponse([post.serialize() for post in posts], safe=False)
 
 
-def comments(request, post_id):
-    post = Post.objects.get(pk=post_id)
-    comments = Comment.objects.filter(post=post)
+def max_page(request, username):
+    if username != "index":
+        page_max = ceil(Post.objects.filter(user=User.objects.get(username=username)).count() / 10)
+    else:
+        page_max = ceil(Post.objects.count() / 10)
 
-    # Reverse chronological order
-    comments = comments.order_by("-timestamp").all()
+    return JsonResponse({
+        'page_max': f"{page_max}"
+    }, status=201)
+
+
+def comments(request, post_id, page):
+    start = page * 10 - 10
+    post = Post.objects.get(pk=post_id)
+    comments = Comment.objects.order_by("-timestamp").filter(post=post)[start : start + 10]
+
     return JsonResponse([comment.serialize() for comment in comments], safe=False)
+
+
+def new_comment(request, post_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+    
+    data = json.loads(request.body)
+    text = data['text'].strip()
+    if not text or text == '':
+        return JsonResponse({"error": "Comment cannot be empty."}, status=400)
+
+    comment = Comment(user=request.user, text=text, post=Post.objects.get(pk=post_id))
+    comment.save()
+    
+    return JsonResponse({
+        "message": "Post created successfully.",
+        "comment": comment.serialize()
+        }, status=201)
+
+
+def max_page_comments(request, post_id):
+    page_max = ceil(Comment.objects.filter(post=Post.objects.get(pk=post_id)).count() / 10)
+
+    return JsonResponse({
+        'page_max': f"{page_max}"
+    }, status=201)
+
+
+def post_view(request, post_id):
+    return render(request, "network/post_view.html", {
+        "post_id": post_id
+    })
+
+
+def post(request, post_id):
+    try:
+        post = Post.objects.get(pk=post_id)
+    except Post.DoesNotExist:
+        return JsonResponse({"error": "This post does not exist"}, status=404)
+
+    if request.user.is_authenticated:
+        return JsonResponse(post.serialize(request.user), safe=False)
+    return JsonResponse(post.serialize(), safe=False)
 
 
 @login_required

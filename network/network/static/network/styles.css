@@ -17,7 +17,7 @@
     }
 }
 
-.new-post {
+.new-post, .new-comment {
     animation-name: appear;
     animation-duration: 1s;
     animation-fill-mode: backwards;

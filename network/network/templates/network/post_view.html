@@ -2,26 +2,34 @@
 {% load static %}
 
 {% block script %}
-    <script src="{% static 'network/index.js' %}"></script>
+    <script src="{% static 'network/post_view.js' %}"></script>
 {% endblock %}
 
 {% block body %}
-    {% block form %}
+
+    <hidden id="post_id" data-id="{{ post_id }}"></hidden>
+
+    <div class="container border border-grey p-5 m-auto mb-4" id="post-view">
+        </div>
+
+    <h1 class="display-3 my-4 text-center">Comments</h1>
+
     {% if user.is_authenticated %}
         <div class="container border border-grey p-5 m-auto mb-4">
             <h5 id="form-message" class="row"></h5>
             <div>
-                <form id="form-post">
-                    <label for="form-body">New Post</label>
-                    <textarea required class="form-control mb-2" id="form-body" placeholder="New Post"></textarea>
-                    <button class="btn btn-primary" type="submit">Post</button>
+                <form id="comment-form">
+                    <label for="form-body">New Comment</label>
+                    <textarea required class="form-control mb-2" id="form-body" placeholder="New Comment"></textarea>
+                    <button class="btn btn-primary" type="submit">Comment</button>
                 </form>
             </div>
         </div>
     {% endif %}
-    {% endblock %}
-    <div class="container border border-grey p-5 m-auto" id="post-feed">
-        </div>
+
+    <div class="container border border-grey p-5 m-auto" id="comment-feed">
+    </div>
+
     <div class="d-flex">
         <div class="mx-auto mt-2">
             <nav aria-label="Page navigation example">

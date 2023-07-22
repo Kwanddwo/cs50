@@ -9,13 +9,13 @@ const LIKED_INNERHTML = `
     </svg>
     `;
 
-let page = 1;
-
 function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(';').shift();
   }
+
+let page = 1;
   
 const csrftoken = getCookie('csrftoken');
 
@@ -52,7 +52,7 @@ function page_feed(page) {
             `;
             like_div.appendChild(like_button);
             like_div.innerHTML += `
-                <div class="col-auto"><a href='#' class="">Comment</a></div>
+                <div class="col-auto"><a href='post_view/${post.id}' class="">Comments</a></div>
             `;
             post_card.appendChild(like_div);
             document.querySelector('#post-feed').appendChild(post_card);
@@ -84,7 +84,6 @@ document.addEventListener('click', (event) => {
         const like_div = svg.parentElement;
         if ((event.target.nodeName === 'path' || event.target.nodeName === 'svg') && like_div.id.match(/like-button-/)) {
             const post_id = like_div.id.replace("like-button-", "");
-
             if (like_div.classList.contains("liked")) {
                 fetch(`/like/${post_id}`, {
                     method: 'POST',
@@ -99,9 +98,9 @@ document.addEventListener('click', (event) => {
                 .then(response => response.json())
                 .then(response => {
                     if ("message" in response) {
-                        like_div.innerHTML = NOT_LIKED_INNERHTML;
                         like_div.classList.remove("liked");
                         document.querySelector(`#like-count-${post_id}`).innerHTML = parseInt(document.querySelector(`#like-count-${post_id}`).innerHTML) - 1;
+                        svg.outerHTML = NOT_LIKED_INNERHTML;
                     }
                 })
                 .catch(error => {
@@ -122,9 +121,9 @@ document.addEventListener('click', (event) => {
                 .then(response => response.json())
                 .then(response => {
                     if ("message" in response) {
-                        like_div.innerHTML = LIKED_INNERHTML;
                         like_div.classList.add("liked");
                         document.querySelector(`#like-count-${post_id}`).innerHTML = parseInt(document.querySelector(`#like-count-${post_id}`).innerHTML) + 1;
+                        svg.outerHTML = LIKED_INNERHTML;
                     }
                 })
                 .catch(error => {
