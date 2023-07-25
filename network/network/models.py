@@ -25,7 +25,8 @@ class Post(models.Model):
             "text": self.text,
             "timestamp": self.timestamp.strftime("%b %d %Y, %I:%M %p"),
             "like_count": self.likes.count(),
-            "liked": Like.objects.filter(user=user, post=self).exists()
+            "liked": Like.objects.filter(user=user, post=self).exists(),
+            "editable": self.user == user 
         }
     
     def __str__(self):

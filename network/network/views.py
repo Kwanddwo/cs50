@@ -210,6 +210,30 @@ def post(request, post_id):
 
 
 @login_required
+def post_edit(request, post_id):
+    if request.method != "PUT":
+        return JsonResponse({"error": "PUT method required"}, status=400)
+
+    try:
+        post = Post.objects.get(pk=post_id)
+    except Post.DoesNotExist:
+        return JsonResponse({"error": f"Post with id {post_id} does not exist"}, status=404)
+    
+    new_text = json.loads(request.body)["text"].strip()
+
+    if not new_text or new_text == '':
+        return JsonResponse({"error": "Post cannot be empty."}, status=400)
+    
+    if request.user != post.user:
+        return JsonResponse({"error": "You can't edit a post that isn't your own"}, status=400)
+    
+    post.text = new_text
+    post.save()
+    return JsonResponse({"message": "Edit successful"}, status=200)
+    
+
+
+@login_required
 def new_post(request):
     if request.method != "POST":
         return JsonResponse({"error": "POST request required."}, status=400)

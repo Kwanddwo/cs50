@@ -7,7 +7,7 @@
         opacity: 0;
         max-height: 0;
     }
-    70% {
+    75% {
         opacity: 0;
         max-height: 300px;
     }
@@ -19,7 +19,7 @@
 
 .new-post, .new-comment {
     animation-name: appear;
-    animation-duration: 1s;
-    animation-fill-mode: backwards;
+    animation-duration: 2s;
+    animation-fill-mode: forwards;
     animation-play-state: paused;
 }

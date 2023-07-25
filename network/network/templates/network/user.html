@@ -3,10 +3,8 @@
 
 {% block title %}User {{ user.username }}{% endblock %}
 
-{% block script %}<script src="{% static 'network/user.js' %}"></script>{% endblock %}
+{% block script %}<script type="module" src="{% static 'network/user.js' %}"></script>{% endblock %}
 
-<!-- Add feed -->
-<!-- Add fluid follow button -->
 {% block body %}
   <div class="container py-5">
     <div class="row justify-content-center">
@@ -23,7 +21,8 @@
             <hidden id="user-v" data-username="{{ user_v.username }}"></hidden>
             
             <p class="card-text">{{ user_v.bio }}</p>
-            <small class="card-text">Followers: {{ follower_count }}</small>
+            <small class="card-text">Followers: </small>
+            <small id="follower-count">{{ follower_count }}</small>
             <small class="card-text">Following: {{ followed_count }}</small>
           </div>
           <ul class="list-group list-group-flush">

@@ -2,8 +2,9 @@
 {% load static %}
 
 {% block script %}
-    <script src="{% static 'network/following.js' %}"></script>
+    <script type="module" src="{% static 'network/following.js' %}"></script>
 {% endblock %}
 
 {% block form %}
+    <h1 class="display-4 m-4 text-center">Following</h1>
 {% endblock %}
